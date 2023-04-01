@@ -106,8 +106,6 @@ class BackendService {
       statement = statement + ' WHERE ' + filter.join(' && ')
     }
 
-    console.log(statement)
-
     const result = await connectionPool.execute<IGetOrderResponse[]>(
       statement,
       params
