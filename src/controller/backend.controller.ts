@@ -6,6 +6,18 @@ import { CODES, MESSAGES } from '../app/constant'
 import { buildResponse } from '../utils/common'
 import { SECRET } from '../app/config'
 
+interface IGetShopDataResponse {
+  categoryId: number
+  categoryName: string
+  categoryShops: {
+    id: number
+    name: string
+    description: string
+    imgURL: string
+    price: number
+  }[]
+}
+
 const backendService = new BackendService()
 
 class BackendController {
@@ -22,6 +34,57 @@ class BackendController {
     } else {
       ctx.body = buildResponse(CODES.BadRequest, MESSAGES.BadRequest)
     }
+  }
+
+  async getOrders(ctx: Koa.ParameterizedContext, next: Koa.Next) {
+    const { body } = ctx.request
+    const { startDate, endDate, priceLimit, orderPrice } = body
+
+    const result = await backendService.getOrders(
+      startDate,
+      endDate,
+      priceLimit,
+      orderPrice
+    )
+    ctx.body = buildResponse(CODES.Success, MESSAGES.Success, result)
+  }
+
+  async getShopDatas(ctx: Koa.ParameterizedContext, next: Koa.Next) {
+    const data: IGetShopDataResponse[] = []
+
+    const shopDatas = await backendService.getShopDatas()
+
+    shopDatas.forEach((item) => {
+      const categoryIndex = data.findIndex(
+        (shop) => shop.categoryId === item.category_id
+      )
+
+      if (categoryIndex !== -1) {
+        data[categoryIndex].categoryShops.push({
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          imgURL: item.imgURL,
+          price: item.price,
+        })
+      } else {
+        data.push({
+          categoryId: item.category_id,
+          categoryName: item.category_name,
+          categoryShops: [
+            {
+              id: item.id,
+              name: item.name,
+              description: item.description,
+              imgURL: item.imgURL,
+              price: item.price,
+            },
+          ],
+        })
+      }
+    })
+
+    ctx.body = buildResponse(CODES.Success, MESSAGES.Success, data)
   }
 
   async addShop(ctx: Koa.ParameterizedContext, next: Koa.Next) {

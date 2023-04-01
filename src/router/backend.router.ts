@@ -19,9 +19,17 @@ backendUnprotectedRouter.post(
   backendController.login
 )
 
-backendProtectedRouter.post('/getOrders')
+backendProtectedRouter.post(
+  '/getOrders',
+  backendMiddleWare.verifyGetOrders,
+  backendController.getOrders
+)
 
-backendProtectedRouter.post('/getShopDatas')
+backendProtectedRouter.get(
+  '/getShopDatas',
+  backendMiddleWare.verifyGetShopDatas,
+  backendController.getShopDatas
+)
 
 backendProtectedRouter.post(
   '/addShop',

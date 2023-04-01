@@ -2,6 +2,25 @@ import { ResultSetHeader, RowDataPacket } from 'mysql2'
 import connectionPool from '../app/service'
 import { IShopData } from '../types/shop'
 
+interface IGetOrderResponse extends RowDataPacket {
+  id: number
+  user_id: number
+  items: string
+  evaluation: string
+  price: number
+  time: string
+}
+
+interface IGetShopDatasResponse extends RowDataPacket {
+  id: number
+  name: string
+  description: string
+  imgURL: string
+  price: number
+  category_id: number
+  category_name: string
+}
+
 interface IGetUserPwdResponse extends RowDataPacket {
   id: number
   password: string
@@ -31,6 +50,89 @@ class BackendService {
     )
     const { id, password } = result[0][0]
     return { id, password }
+  }
+
+  async getOrders(
+    startDate: string | undefined,
+    endDate: string | undefined,
+    priceLimit: string | undefined,
+    orderPrice: number | undefined
+  ) {
+    let statement = `
+      SELECT
+        id,
+        user_id,
+        items,
+        evaluation,
+        price,
+        create_time AS \`time\`
+      FROM
+        \`order\`
+    `
+    const filter = []
+    const params = []
+
+    if (startDate && endDate) {
+      filter.push('create_time >= ? && create_time <= ?')
+      params.push(startDate, endDate)
+    }
+
+    if (priceLimit && orderPrice) {
+      switch (priceLimit) {
+        case 'GT':
+          filter.push('price > ?')
+          break
+
+        case 'LT':
+          filter.push('price < ?')
+          break
+
+        case 'EQ':
+          filter.push('price = ?')
+          break
+
+        case 'GTE':
+          filter.push('price >= ?')
+          break
+
+        case 'LTE':
+          filter.push('price <= ?')
+          break
+      }
+      params.push(orderPrice)
+    }
+
+    if (filter.length && params.length) {
+      statement = statement + ' WHERE ' + filter.join(' && ')
+    }
+
+    console.log(statement)
+
+    const result = await connectionPool.execute<IGetOrderResponse[]>(
+      statement,
+      params
+    )
+    return result[0]
+  }
+
+  async getShopDatas() {
+    const statement = `
+      SELECT
+        items.id,
+        items.name,
+        items.description,
+        items.imgURL,
+        items.price,
+        items.category_id,
+        category.name AS category_name
+      FROM
+        items
+        INNER JOIN category ON items.category_id = category.id
+    `
+    const result = await connectionPool.execute<IGetShopDatasResponse[]>(
+      statement
+    )
+    return result[0]
   }
 
   async addShop(categoryId: number, shopData: IShopData): Promise<boolean> {

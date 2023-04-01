@@ -16,6 +16,46 @@ class BackendMiddleWare {
     await next()
   }
 
+  async verifyGetOrders(ctx: Koa.ParameterizedContext, next: Koa.Next) {
+    const { body } = ctx.request
+
+    if (!body) {
+      ctx.body = buildResponse(CODES.BadRequest, MESSAGES.BadRequest)
+      return
+    }
+
+    const { startDate, endDate, priceLimit, orderPrice } = body
+
+    if ((startDate && !endDate) || (!startDate && endDate)) {
+      ctx.body = buildResponse(CODES.BadRequest, MESSAGES.BadRequest)
+      return
+    }
+
+    if ((priceLimit && !orderPrice) || (!priceLimit && orderPrice)) {
+      ctx.body = buildResponse(CODES.BadRequest, MESSAGES.BadRequest)
+      return
+    }
+
+    if (
+      (startDate && typeof startDate !== 'string') ||
+      (endDate && typeof endDate !== 'string') ||
+      (priceLimit &&
+        ['GT', 'LT', 'EQ', 'GTE', 'LTE'].findIndex(
+          (item) => item === priceLimit
+        ) === -1) ||
+      (orderPrice && typeof orderPrice !== 'number')
+    ) {
+      ctx.body = buildResponse(CODES.BadRequest, MESSAGES.BadRequest)
+      return
+    }
+
+    await next()
+  }
+
+  async verifyGetShopDatas(ctx: Koa.ParameterizedContext, next: Koa.Next) {
+    await next()
+  }
+
   async verifyAddShop(ctx: Koa.ParameterizedContext, next: Koa.Next) {
     const { body } = ctx.request
     const { categoryId, shopData } = body
