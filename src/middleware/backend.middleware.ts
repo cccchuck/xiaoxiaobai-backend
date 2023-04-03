@@ -2,8 +2,6 @@ import Koa from 'koa'
 import { CODES, MESSAGES } from '../app/constant'
 import { buildResponse } from '../utils/common'
 
-import type { IShopData } from '../types/shop'
-
 class BackendMiddleWare {
   async verifyUsernamePassword(ctx: Koa.ParameterizedContext, next: Koa.Next) {
     const { body } = ctx.request
@@ -127,6 +125,10 @@ class BackendMiddleWare {
       return
     }
 
+    await next()
+  }
+
+  async verifyUploadImg(ctx: Koa.ParameterizedContext, next: Koa.Next) {
     await next()
   }
 }

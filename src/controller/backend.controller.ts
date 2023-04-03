@@ -5,6 +5,8 @@ import { comparePassword } from '../utils/crypto'
 import { CODES, MESSAGES } from '../app/constant'
 import { buildResponse } from '../utils/common'
 import { SECRET } from '../app/config'
+import { createReadStream, createWriteStream } from 'fs'
+import path from 'path'
 
 interface IGetShopDataResponse {
   categoryId: number
@@ -46,6 +48,8 @@ class BackendController {
       priceLimit,
       orderPrice
     )
+    result.forEach((item) => (item.items = JSON.parse(item.items)))
+
     ctx.body = buildResponse(CODES.Success, MESSAGES.Success, result)
   }
 
@@ -123,6 +127,20 @@ class BackendController {
       ctx.body = buildResponse(CODES.Success, MESSAGES.Success)
     } else {
       ctx.body = buildResponse(CODES.ServerError, MESSAGES.ServerError)
+    }
+  }
+
+  async uploadImg(ctx: Koa.ParameterizedContext, next: Koa.Next) {
+    const { files } = ctx.request
+    if (files) {
+      const file = files.files as any
+      const fileName = file.newFilename
+      const reader = createReadStream(file.filepath)
+      reader.pipe(file._writeStream)
+      ctx.body = buildResponse(CODES.Success, MESSAGES.Success, {
+        uid: fileName.split('.')[0],
+        url: `http://localhost:8000/static/${fileName}`,
+      })
     }
   }
 }

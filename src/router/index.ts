@@ -1,21 +1,30 @@
 import Router from '@koa/router'
 
 import {
-  backendUnprotectedRouter,
   backendProtectedRouter,
+  backendUnprotectedRouter,
 } from './backend.router'
+
+import {
+  miniprogramProtectedRouter,
+  miniprogramUnprotectedRouter,
+} from './miniprogram.router'
 
 const unprotectedRouter = new Router()
 const protectedRouter = new Router()
 
-unprotectedRouter.use(
-  backendUnprotectedRouter.routes(),
-  backendUnprotectedRouter.allowedMethods()
-)
-
 protectedRouter.use(
   backendProtectedRouter.routes(),
-  backendProtectedRouter.allowedMethods()
+  backendProtectedRouter.allowedMethods(),
+  miniprogramProtectedRouter.routes(),
+  miniprogramProtectedRouter.allowedMethods()
 )
 
-export { unprotectedRouter, protectedRouter }
+unprotectedRouter.use(
+  backendUnprotectedRouter.routes(),
+  backendUnprotectedRouter.allowedMethods(),
+  miniprogramUnprotectedRouter.routes(),
+  miniprogramUnprotectedRouter.allowedMethods()
+)
+
+export { protectedRouter, unprotectedRouter }

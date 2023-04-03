@@ -49,4 +49,10 @@ backendProtectedRouter.post(
   backendController.updateShop
 )
 
+backendProtectedRouter.post(
+  '/upload',
+  backendMiddleWare.verifyUploadImg,
+  backendController.uploadImg
+)
+
 export { backendUnprotectedRouter, backendProtectedRouter }
